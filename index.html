@@ -288,7 +288,9 @@
                     role: formData.get('role'),
                     status: 'pending',
                     registration_date: new Date().toISOString(),
-                    cleanmybed_email: null
+                    cleanmybed_email: null,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
                 };
 
                 // Validate required fields
@@ -304,9 +306,9 @@
                     throw new Error('Please enter a valid email address');
                 }
 
-                // Check if email already exists
+                // Check if email already exists in users table
                 const { data: existingUser } = await supabase
-                    .from('user_registrations')
+                    .from('users')
                     .select('personal_email')
                     .eq('personal_email', registrationData.personal_email)
                     .maybeSingle();
@@ -315,14 +317,17 @@
                     throw new Error('This email address has already been registered');
                 }
 
-                // Submit to Supabase
+                // Submit to Supabase users table
                 const { data, error } = await supabase
-                    .from('user_registrations')
+                    .from('users')
                     .insert([registrationData])
                     .select();
 
                 if (error) {
                     console.error('Supabase error:', error);
+                    if (error.message.includes('duplicate key')) {
+                        throw new Error('This email address has already been registered');
+                    }
                     throw new Error('Failed to complete registration. Please try again.');
                 }
 
@@ -334,11 +339,28 @@
                 // Reset form
                 form.reset();
 
+                // Optional: Send notification to admin system
+                await notifyAdminSystem(data[0]);
+
             } catch (error) {
                 console.error('Submission error:', error);
                 showError(error.message);
             }
         });
+
+        // Optional: Notify admin system of new registration
+        async function notifyAdminSystem(userData) {
+            try {
+                // This could trigger an email notification or update a dashboard
+                console.log('New user registered:', userData);
+                
+                // You could add webhook calls or other notifications here
+                // Example: await fetch('/api/notify-admin', { method: 'POST', body: JSON.stringify(userData) });
+                
+            } catch (error) {
+                console.log('Admin notification failed (non-critical):', error);
+            }
+        }
 
         function showLoading() {
             form.style.display = 'none';
