@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CleanMyBed - Team Onboarding</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #772cbb;
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.8em;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1em;
+        }
+
+        .form-container {
+            padding: 30px 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95em;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            background: #fafbfc;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #772cbb;
+            background: white;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: #772cbb;
+            color: white;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            background: #5a237a;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(119, 44, 187, 0.3);
+        }
+
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #772cbb;
+        }
+
+        .success {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            color: #27ae60;
+        }
+
+        .error {
+            display: none;
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #772cbb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                margin: 10px;
+                border-radius: 8px;
+            }
+            
+            .header {
+                padding: 25px 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.6em;
+            }
+            
+            .form-container {
+                padding: 25px 20px;
+            }
+            
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                padding: 12px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛏️ CleanMyBed Onboarding</h1>
+            <p>Welcome to the team! Please complete your registration</p>
+        </div>
+
+        <div class="form-container">
+            <div class="error" id="errorMessage"></div>
+            
+            <form id="registrationForm">
+                <div class="form-group">
+                    <label for="firstName">First Name *</label>
+                    <input type="text" id="firstName" name="firstName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="lastName">Last Name *</label>
+                    <input type="text" id="lastName" name="lastName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="personalEmail">Personal Email *</label>
+                    <input type="email" id="personalEmail" name="personalEmail" required>
+                    <small style="color: #666; font-size: 0.85em;">Your personal email address</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number *</label>
+                    <input type="tel" id="phone" name="phone" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="address">Address *</label>
+                    <textarea id="address" name="address" required placeholder="Full physical address including city and postal code"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="role">Role *</label>
+                    <select id="role" name="role" required>
+                        <option value="">Select Role</option>
+                        <option value="franchisee">Franchisee</option>
+                        <option value="area_manager">Area Manager</option>
+                        <option value="support_staff">Support Staff</option>
+                        <option value="admin">Admin</option>
+                        <option value="investor">Investor</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    Submit
+                </button>
+            </form>
+
+            <div class="loading" id="loadingMessage">
+                <div class="spinner"></div>
+                Completing your registration...
+            </div>
+
+            <div class="success" id="successMessage">
+                <div class="success-icon">✅</div>
+                <h3>Registration Completed Successfully!</h3>
+                <p>Thank you for completing your registration. Your CleanMyBed email and login details will be sent to you shortly.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Supabase configuration
+        const SUPABASE_URL = 'https://teoieqiqscoppxcunqfg.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlb2llcWlxc2NvcHB4Y3VucWZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA5OTg3NTQsImV4cCI6MjA2NjU3NDc1NH0.f7diddECS75o44EQ76qbwoQON6sWBof1kZLLDU5RWfk';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Form elements
+        const form = document.getElementById('registrationForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // Form submission handler
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Hide any previous messages
+            hideAllMessages();
+            
+            // Show loading state
+            showLoading();
+            
+            try {
+                // Get form data
+                const formData = new FormData(form);
+                const registrationData = {
+                    first_name: formData.get('firstName').trim(),
+                    last_name: formData.get('lastName').trim(),
+                    personal_email: formData.get('personalEmail').trim().toLowerCase(),
+                    phone: formData.get('phone').trim(),
+                    address: formData.get('address').trim(),
+                    role: formData.get('role'),
+                    status: 'pending',
+                    registration_date: new Date().toISOString(),
+                    cleanmybed_email: null
+                };
+
+                // Validate required fields
+                if (!registrationData.first_name || !registrationData.last_name || 
+                    !registrationData.personal_email || !registrationData.phone || 
+                    !registrationData.address || !registrationData.role) {
+                    throw new Error('Please fill in all required fields');
+                }
+
+                // Validate email format
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(registrationData.personal_email)) {
+                    throw new Error('Please enter a valid email address');
+                }
+
+                // Check if email already exists
+                const { data: existingUser } = await supabase
+                    .from('user_registrations')
+                    .select('personal_email')
+                    .eq('personal_email', registrationData.personal_email)
+                    .maybeSingle();
+
+                if (existingUser) {
+                    throw new Error('This email address has already been registered');
+                }
+
+                // Submit to Supabase
+                const { data, error } = await supabase
+                    .from('user_registrations')
+                    .insert([registrationData])
+                    .select();
+
+                if (error) {
+                    console.error('Supabase error:', error);
+                    throw new Error('Failed to complete registration. Please try again.');
+                }
+
+                console.log('Registration completed successfully:', data);
+                
+                // Show success message
+                showSuccess();
+                
+                // Reset form
+                form.reset();
+
+            } catch (error) {
+                console.error('Submission error:', error);
+                showError(error.message);
+            }
+        });
+
+        function showLoading() {
+            form.style.display = 'none';
+            loadingMessage.style.display = 'block';
+            submitBtn.disabled = true;
+        }
+
+        function showSuccess() {
+            loadingMessage.style.display = 'none';
+            successMessage.style.display = 'block';
+        }
+
+        function showError(message) {
+            loadingMessage.style.display = 'none';
+            form.style.display = 'block';
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            submitBtn.disabled = false;
+        }
+
+        function hideAllMessages() {
+            errorMessage.style.display = 'none';
+            loadingMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+        }
+
+        // Auto-hide error messages after 5 seconds
+        function autoHideError() {
+            setTimeout(() => {
+                if (errorMessage.style.display === 'block') {
+                    errorMessage.style.display = 'none';
+                }
+            }, 5000);
+        }
+
+        // Form validation helpers
+        document.getElementById('personalEmail').addEventListener('blur', function() {
+            const email = this.value.trim();
+            if (email && email.includes('@cleanmybed.com')) {
+                showError('Please use your personal email address, not a CleanMyBed email');
+                autoHideError();
+                this.focus();
+            }
+        });
+
+        // Phone number formatting
+        document.getElementById('phone').addEventListener('input', function() {
+            let value = this.value.replace(/\D/g, '');
+            if (value.length >= 10) {
+                value = value.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+            }
+            this.value = value;
+        });
+    </script>
+</body>
+</html>
