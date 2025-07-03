@@ -324,11 +324,18 @@
                     .select();
 
                 if (error) {
-                    console.error('Supabase error:', error);
+                    console.error('Supabase error details:', error);
+                    console.error('Error message:', error.message);
+                    console.error('Error code:', error.code);
+                    console.error('Error details:', error.details);
+                    
                     if (error.message.includes('duplicate key')) {
                         throw new Error('This email address has already been registered');
                     }
-                    throw new Error('Failed to complete registration. Please try again.');
+                    if (error.message.includes('permission denied') || error.code === 'PGRST301') {
+                        throw new Error('Database permission error. Please contact support.');
+                    }
+                    throw new Error(`Registration failed: ${error.message}`);
                 }
 
                 console.log('Registration completed successfully:', data);
